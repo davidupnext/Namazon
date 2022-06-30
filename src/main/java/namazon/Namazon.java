@@ -1,7 +1,6 @@
 package namazon;
 
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Namazon {
@@ -33,8 +32,8 @@ public class Namazon {
         return vendor;
     }
 
-    public Customer signUpAsCustomer(String firstName, String lastName, String email, String password){
-        Customer customer = new Customer(firstName,lastName,email,password);
+    public Customer signUpAsCustomer(String firstName, String lastName, String email, String password, Address address){
+        Customer customer = new Customer(firstName,lastName,email,password, address);
         customers.add(customer);
         return customer;
     }

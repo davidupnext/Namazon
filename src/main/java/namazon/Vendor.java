@@ -1,19 +1,17 @@
 package namazon;
 
+import namazon.exceptions.NotInInventoryException;
 import namazon.exceptions.ProductUnavailableException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
+import java.util.*;
 
 public class Vendor extends Account {
     private  String brandName;
-    private Map<String, Integer> inventory;
+    private Map<Product, Integer> inventory;
     private List<Product> products;
     private Product[] showCase;
     private List<Order> orders;
-    private int indexCount = 0;
+
 
     public Vendor(String brandName,String firstName, String lastName, String email, String password) {
         super(firstName, lastName, email, password);
@@ -32,11 +30,11 @@ public class Vendor extends Account {
         this.brandName = brandName;
     }
 
-    public Map<String, Integer> getInventory() {
+    public Map<Product, Integer> getInventory() {
         return inventory;
     }
 
-    public void setInventory(Map<String, Integer> inventory) {
+    public void setInventory(Map<Product, Integer> inventory) {
         this.inventory = inventory;
     }
 
@@ -56,23 +54,27 @@ public class Vendor extends Account {
         this.orders = orders;
     }
 
+
     public void addProduct(Product product){
 
         String productName= product.getName();
         if (inventory.containsKey(productName)) {
             int count = inventory.get(productName) + 1;
-            inventory.put(productName, count);
+            inventory.put(product, count);
         } else {
-            inventory.put(productName, 1);
+            inventory.put(product, 1);
         }
     }
 
-    public Boolean modifyProduct(Product product) {
+   /* public Boolean modifyProduct(Product product,String name) {
         if (inventory.containsKey(product.getName())) {
+            product.setName(name);
+            inventory.put(product);
             return true;
         }
         return false;
-    }
+    }*/
+
     public Boolean removeProduct(Product product){
         if(inventory.containsKey(product)){
             inventory.remove(product);
@@ -81,15 +83,40 @@ public class Vendor extends Account {
         return false;
     }
 
+    private Boolean insideInventory(Product product){
+        return inventory.containsKey(product);
+    }
+    public Order placeAnOrder(Product product, Address destination) throws NotInInventoryException {
+        if(!insideInventory(product)) throw new NotInInventoryException();
+        Order order = new Order(product, destination, OrderStatus.PENDING);
+        removeProductFromInventory(product);
+        orders.add(order);
+        return order;
+    }
     public Boolean cancelOrder(Order order){
-        return true;
+        if(order == null) return false;
+        if(checkIfOrderExistsAndHasShipped(order))
+            return orders.remove(order);
+        return false;
     }
 
-    public void addProductToShowCase(Product product){
-        if (showCase.length<=5){
-            showCase[indexCount] = product;
-            indexCount++;
+    private Boolean checkIfOrderExistsAndHasShipped(Order order){
+        return orders.stream().anyMatch(placedOrder -> placedOrder.getId()
+                .equals(order.getId()) &&
+                placedOrder.getStatus() != OrderStatus.SHIPPED);
+    }
+
+    public Boolean removeProductFromInventory(Product product){
+        if(insideInventory(product)) {
+            inventory.remove(product);
+            return true;
         }
+        return false;
+    }
+
+    public void addProductToShowcase(Product product, Integer position){
+        if(position < 0 || position > 4) throw new IndexOutOfBoundsException();
+        showCase[position] = product;
 
     }
     public  Product searchByCategory(ProductCategory productCategory){
@@ -133,5 +160,11 @@ public class Vendor extends Account {
         return orders;
     }
 
-
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Vendor vendor = (Vendor) o;
+        return Objects.equals(brandName, vendor.brandName) && Objects.equals(inventory, vendor.inventory) && Arrays.equals(showCase, vendor.showCase) && Objects.equals(orders, vendor.orders);
+    }
 }

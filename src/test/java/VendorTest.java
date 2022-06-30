@@ -2,6 +2,7 @@ import namazon.Order;
 import namazon.Product;
 import namazon.ProductCategory;
 import namazon.Vendor;
+import namazon.Namazon;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
